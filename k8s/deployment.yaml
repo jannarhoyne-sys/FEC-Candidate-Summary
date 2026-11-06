@@ -20,7 +20,7 @@ spec:
       containers:
         - name: house-vote-share
           image: jannahoyne1/house-vote-share:latest   # same image as Docker Hub, Heroku and EC2
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080  # gunicorn listens here inside the container
           env:
