@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>House Vote Share Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dem:#1170d1; --dem-light:#8fbbe8;
+    --rep:#cf1030; --rep-light:#ec8f9f;
+    --oth:#9a9a9a; --oth-light:#d4d4d4;
+    --ink:#111; --muted:#666; --line:#e3e3e3; --bg:#fff; --panel:#f6f6f4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+  header{border-bottom:4px solid var(--ink);padding:18px 0 10px;margin-bottom:18px}
+  h1{font-family:"Barlow Condensed";font-weight:700;font-size:34px;margin:0}
+  .sub{color:var(--muted);margin-top:2px}
+  .tabs{display:flex;gap:8px;margin:14px 0 18px}
+  .tab{font-family:"Barlow Condensed";font-weight:700;font-size:18px;padding:8px 16px;border-radius:4px;background:#e6e6e6;color:var(--ink);text-decoration:none}
+  .tab.on{background:var(--rep);color:#fff}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;background:var(--panel);padding:14px;border-radius:6px;align-items:end}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+  select,button.go{font:inherit;font-size:16px;padding:8px 10px;border:1px solid #ccc;border-radius:4px;background:#fff}
+  button.go{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600;cursor:pointer}
+  .race{margin-top:26px}
+  .race-title{font-family:"Barlow Condensed";font-size:28px;font-weight:700;margin:0 0 4px}
+  .tally{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:10px}
+  .big{font-family:"Barlow Condensed";font-weight:700;font-size:46px;line-height:1}
+  .big.dem{color:var(--dem)} .big.rep{color:var(--rep)} .big.oth{color:#555}
+  .who{font-size:18px}
+  .check{display:inline-block;color:#fff;font-size:13px;width:18px;height:18px;text-align:center;line-height:18px;border-radius:2px;margin-left:6px;vertical-align:2px}
+  .check.dem{background:var(--dem)} .check.rep{background:var(--rep)} .check.oth{background:#555}
+  .marker{text-align:center;font-family:"Barlow Condensed";font-size:18px;margin-top:8px}
+  .marker::after{content:"";display:block;margin:2px auto 0;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:9px solid #555}
+  .bar{position:relative;display:flex;height:46px;margin-top:4px}
+  .seg{height:100%}
+  .seg.dem{background:var(--dem)} .seg.rep{background:var(--rep)} .seg.oth{background:var(--oth)}
+  .close .seg.dem{background:repeating-linear-gradient(135deg,var(--dem) 0 3px,var(--dem-light) 3px 7px)}
+  .close .seg.rep{background:repeating-linear-gradient(135deg,var(--rep) 0 3px,var(--rep-light) 3px 7px)}
+  .close .seg.oth{background:repeating-linear-gradient(135deg,var(--oth) 0 3px,var(--oth-light) 3px 7px)}
+  .half{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:#fff;outline:1px solid #555}
+  .callout{text-align:center;color:var(--muted);margin-top:8px}
+  .chip{display:inline-block;font-family:"Barlow Condensed";font-weight:700;font-size:16px;padding:3px 10px;border-radius:3px;margin-left:8px;vertical-align:4px}
+  .chip.safe-dem{background:var(--dem);color:#fff} .chip.leans-dem{background:var(--dem-light);color:#0b3d73}
+  .chip.safe-rep{background:var(--rep);color:#fff} .chip.leans-rep{background:var(--rep-light);color:#6d0718}
+  .chip.safe-oth{background:#555;color:#fff} .chip.leans-oth{background:var(--oth-light);color:#333}
+  .chip.tossup{background:#eee;color:#333;border:1px dashed #888}
+  .verdict{margin-top:6px;font-size:15px}
+  .verdict.ok{color:#1d7a35} .verdict.miss{color:#a3271b}
+  .whatif{align-self:center;margin-left:auto;color:var(--dem);font-weight:600;text-decoration:none}
+  .whatif:hover{text-decoration:underline}
+  .hint{color:var(--muted);font-size:14px;align-self:center;max-width:520px}
+  .cand-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  .cand{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:0;min-width:0}
+  .cand legend{font-family:"Barlow Condensed";font-weight:700;font-size:18px;padding:0 4px}
+  .cand .row{display:flex;gap:8px;flex-wrap:wrap}
+  .cand .row > div{min-width:0}
+  .cand .grow{flex:1 1 140px}
+  .cand input{font:inherit;font-size:15px;padding:7px 8px;border:1px solid #ccc;border-radius:4px;width:100%}
+  .cand select{font-size:15px;padding:7px 6px}
+  .cand input.money{width:110px} .cand input.pct{width:80px}
+  .cand details{margin-top:8px} .cand summary{cursor:pointer;color:var(--muted);font-size:14px}
+  .cand details .row{margin-top:6px}
+  .errors{margin-top:12px;padding:10px 12px;background:#fdecea;border:1px solid #f1b0a8;border-radius:4px;color:#a3271b}
+  @media (max-width:700px){ .cand-grid{grid-template-columns:1fr} .whatif{margin-left:0} }
+  .caution{margin-top:10px;padding:8px 12px;background:#fff7d6;border:1px solid #e6cf7a;border-radius:4px;font-size:15px}
+  table{width:100%;border-collapse:collapse;margin-top:22px;font-size:15px}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:2px solid var(--ink);padding:6px 8px}
+  td{border-bottom:1px solid var(--line);padding:9px 8px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:8px;vertical-align:-1px}
+  .sw.dem{background:var(--dem)} .sw.rep{background:var(--rep)} .sw.oth{background:var(--oth)}
+  .pred{font-weight:600}
+  .won{font-size:12px;color:var(--muted);margin-left:4px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:14px;color:var(--muted)}
+  .lg{display:inline-block;width:22px;height:12px;margin-right:6px;vertical-align:-1px}
+  .note{margin-top:18px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+  @media (max-width:600px){ .big{font-size:34px} h1{font-size:28px} table{font-size:13px} .hide-sm{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>U.S. House Vote Share Predictor</h1>
+    <div class="sub">How much of the vote does campaign money explain? Predictions from a model trained on 2024 FEC and MIT election data.</div>
+  </header>
+
+  <nav class="tabs">
+    <a class="tab {% if mode == 'lookup' %}on{% endif %}" href="/">LOOK UP A RACE</a>
+    <a class="tab {% if mode == 'hypo' %}on{% endif %}" href="/hypothetical">HYPOTHETICAL CANDIDATE</a>
+  </nav>
+
+  {% if mode == 'lookup' %}
+  <form class="controls" method="get" action="/">
+    <div>
+      <label for="race">2024 race</label>
+      <select id="race" name="race" onchange="this.form.submit()">
+        {% for state, keys in race_menu.items() %}
+        <optgroup label="{{ state }}">
+          {% for k in keys %}<option value="{{ k }}" {% if k == key %}selected{% endif %}>{{ k }}</option>{% endfor %}
+        </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="go" type="submit">Predict</button>
+    <a class="whatif" href="/hypothetical?from={{ key }}">Edit {{ key }} as a what-if →</a>
+  </form>
+  {% endif %}
+
+  {% if mode == 'hypo' %}
+  <form method="post" action="/hypothetical">
+    <div class="controls">
+      <div>
+        <label for="state">State</label>
+        <select id="state" name="state">
+          {% for s in states %}<option {% if s == state %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="hint">Enter 2 to 4 candidates. Amounts can be typed as 250000, 250K or 1.5M. Leave a row empty to skip it.</div>
+    </div>
+
+    <div class="cand-grid">
+      {% for row in rows %}{% set i = loop.index0 %}
+      <fieldset class="cand">
+        <legend>Candidate {{ i + 1 }}</legend>
+        <div class="row">
+          <div class="grow"><label>Name</label><input name="c{{ i }}_name" value="{{ row.name }}" placeholder="Name"></div>
+          <div><label>Party</label>
+            <select name="c{{ i }}_party">{% for p in parties %}<option {% if p == row.party %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+          <div><label>Status</label>
+            <select name="c{{ i }}_status">{% for s in statuses %}<option {% if s == row.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+          <div><label>Raised ($)</label><input name="c{{ i }}_raised" value="{{ row.raised }}" placeholder="e.g. 1.5M" class="money"></div>
+        </div>
+        <details>
+          <summary>Advanced (optional; blank = typical for this party and status)</summary>
+          <div class="row">
+            <div><label>Small donors %</label><input name="c{{ i }}_small" value="{{ row.small or '' }}" class="pct"></div>
+            <div><label>PACs %</label><input name="c{{ i }}_pac" value="{{ row.pac or '' }}" class="pct"></div>
+            <div><label>Self-funded %</label><input name="c{{ i }}_self" value="{{ row.self or '' }}" class="pct"></div>
+            <div><label>Cash at start ($)</label><input name="c{{ i }}_cash" value="{{ row.cash or '' }}" class="money"></div>
+          </div>
+        </details>
+      </fieldset>
+      {% endfor %}
+    </div>
+    <button class="go" type="submit">Predict</button>
+  </form>
+
+  {% if errors %}
+  <div class="errors">{% for e in errors %}<div>✗ {{ e }}</div>{% endfor %}</div>
+  {% endif %}
+  {% endif %}
+
+  {% if r %}
+  <section class="race">
+    <h2 class="race-title">{{ title }} <span class="chip {{ r.chip }}">{{ r.label }}</span></h2>
+    {% if r.called_right is defined %}
+      {% if r.called_right %}
+        <div class="verdict ok">✓ The model picked the actual 2024 winner.</div>
+      {% else %}
+        <div class="verdict miss">✗ The model missed this one: the actual winner is marked in the table.</div>
+      {% endif %}
+    {% endif %}
+
+    {% if r.same_party %}
+    <div class="caution">⚠ This race has more than one candidate from the same party (a top-two or open primary). The model is less reliable here: it learned that major-party candidates get their party's voters, which isn't true when two of them split those voters.</div>
+    {% endif %}
+
+    <div class="tally">
+      <div>
+        <div class="big {{ r.leader.cls }}">{{ '%.1f' % r.leader.pred }}%</div>
+        <div class="who">{{ r.leader.name }} ({{ r.leader.party }})<span class="check {{ r.leader.cls }}">✓</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="big {{ r.runner_up.cls }}">{{ '%.1f' % r.runner_up.pred }}%</div>
+        <div class="who">{{ r.runner_up.name }} ({{ r.runner_up.party }})</div>
+      </div>
+    </div>
+
+    <div class="marker">50%</div>
+    <div class="bar {% if r.close %}close{% endif %}">
+      {% for c in r.bar %}<div class="seg {{ c.cls }}" style="width:{{ '%.2f' % c.pred }}%" title="{{ c.name }}: {{ '%.1f' % c.pred }}%"></div>{% endfor %}
+      <div class="half"></div>
+    </div>
+    <div class="callout">Predicted margin: {{ '%.1f' % r.margin }} points · Typical model error: about ±4 points per candidate</div>
+
+    <table>
+      <thead><tr>
+        <th>Candidate</th><th class="hide-sm">Status</th><th class="num">Raised</th>
+        <th class="num">Money share</th><th class="num">Predicted</th>
+        {% if r.called_right is defined %}<th class="num">Actual 2024</th>{% endif %}
+      </tr></thead>
+      <tbody>
+        {% for c in r.cands %}
+        <tr>
+          <td><span class="sw {{ c.cls }}"></span>{{ c.name }}</td>
+          <td class="hide-sm">{{ c.status }}</td>
+          <td class="num">{{ c.raised }}</td>
+          <td class="num">{{ '%.0f' % c.money_share }}%</td>
+          <td class="num pred">{{ '%.1f' % c.pred }}%</td>
+          {% if c.actual is not none %}<td class="num">{{ '%.1f' % c.actual }}%{% if c.won %}<span class="won">won</span>{% endif %}</td>{% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="legend">
+      <span><span class="lg" style="background:var(--dem)"></span>Clear predicted winner</span>
+      <span><span class="lg" style="background:repeating-linear-gradient(135deg,var(--dem) 0 3px,var(--dem-light) 3px 7px)"></span>Too close to call (predicted margin under 5 points)</span>
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="note">Model: random forest trained on 2024 U.S. House races; average error 3.8 points on races it had never seen. Predictions are scaled so each race adds up to 100%. Money and votes are correlated, but that is not proof that money causes votes: donors also give to candidates who already look likely to win.</div>
+</div>
+</body>
+</html>

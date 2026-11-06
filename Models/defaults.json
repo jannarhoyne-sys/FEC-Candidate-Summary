@@ -1,0 +1,145 @@
+{
+  "features": [
+    "state_po",
+    "party_group",
+    "status",
+    "n_candidates",
+    "log_receipts",
+    "log_opp_money",
+    "money_share",
+    "money_gap",
+    "small_donor_pct",
+    "pac_pct",
+    "party_money_pct",
+    "self_fund_pct",
+    "log_cash_start"
+  ],
+  "states": [
+    "AK",
+    "AL",
+    "AR",
+    "AZ",
+    "CA",
+    "CO",
+    "CT",
+    "DC",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "IA",
+    "ID",
+    "IL",
+    "IN",
+    "KS",
+    "KY",
+    "LA",
+    "MA",
+    "MD",
+    "ME",
+    "MI",
+    "MN",
+    "MO",
+    "MS",
+    "MT",
+    "NC",
+    "ND",
+    "NE",
+    "NH",
+    "NJ",
+    "NM",
+    "NV",
+    "NY",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VA",
+    "VT",
+    "WA",
+    "WI",
+    "WV",
+    "WY"
+  ],
+  "party_groups": [
+    "DEM",
+    "REP",
+    "OTHER"
+  ],
+  "statuses": [
+    "INCUMBENT",
+    "CHALLENGER",
+    "OPEN"
+  ],
+  "by_group": {
+    "DEM|CHALLENGER": {
+      "small_donor_pct": 0.2366,
+      "pac_pct": 0.0267,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0003,
+      "log_cash_start": 0.0
+    },
+    "DEM|INCUMBENT": {
+      "small_donor_pct": 0.0543,
+      "pac_pct": 0.4119,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0,
+      "log_cash_start": 5.5587
+    },
+    "DEM|OPEN": {
+      "small_donor_pct": 0.1317,
+      "pac_pct": 0.0418,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0009,
+      "log_cash_start": 0.0
+    },
+    "OTHER|CHALLENGER": {
+      "small_donor_pct": 0.0,
+      "pac_pct": 0.0,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0,
+      "log_cash_start": 0.0
+    },
+    "OTHER|OPEN": {
+      "small_donor_pct": 0.0,
+      "pac_pct": 0.0,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0,
+      "log_cash_start": 0.0
+    },
+    "REP|CHALLENGER": {
+      "small_donor_pct": 0.0779,
+      "pac_pct": 0.0014,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0156,
+      "log_cash_start": 0.0
+    },
+    "REP|INCUMBENT": {
+      "small_donor_pct": 0.0527,
+      "pac_pct": 0.3802,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.0,
+      "log_cash_start": 5.5491
+    },
+    "REP|OPEN": {
+      "small_donor_pct": 0.0545,
+      "pac_pct": 0.1415,
+      "party_money_pct": 0.0,
+      "self_fund_pct": 0.1306,
+      "log_cash_start": 0.0
+    }
+  },
+  "overall": {
+    "small_donor_pct": 0.0586,
+    "pac_pct": 0.053,
+    "party_money_pct": 0.0,
+    "self_fund_pct": 0.0,
+    "log_cash_start": 0.0
+  }
+}
