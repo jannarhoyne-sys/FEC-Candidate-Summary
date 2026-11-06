@@ -16,4 +16,6 @@ EXPOSE 8080
 
 # Start the app with gunicorn. ENTRYPOINT (not CMD) so SageMaker's "serve" argument can't replace it
 #Original Code failed - rewrote to use gunicorn with threads and timeout
-ENTRYPOINT ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4 --timeout 120 app:app"]
+# start-up script, named "serve" - Heroku runs it through CMD, and SageMaker calls "serve" itself
+RUN printf '#!/bin/sh\nexec gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4 --timeout 120 app:app\n' > /usr/local/bin/serve && chmod +x /usr/local/bin/serve
+CMD ["serve"]

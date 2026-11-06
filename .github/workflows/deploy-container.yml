@@ -1,0 +1,44 @@
+name: Build container and deploy to Heroku
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      #Download the repo
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # CI: build the image, start it, and check that it answers
+      - name: Build Docker image
+        run: docker build -t house-vote-share .
+      - name: Test the container
+        run: |
+          docker run -d --name test -p 8080:8080 house-vote-share
+          for i in $(seq 1 30); do curl -sf http://localhost:8080/ping && break; sleep 2; done
+          curl -sf http://localhost:8080/ > /dev/null
+          echo "Container checks passed"
+          docker stop test
+
+      # Heroku CLI
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
+      # Docker needs Heroku's "container" stack
+      - name: Set Heroku stack to container
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY_ELECTION_DOCKER}}
+        run: heroku stack:set container -a election-2024-hoyne-docker
+
+      # Deploy container
+      - name: Deploy container to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY_ELECTION_DOCKER}}
+          heroku_app_name: "election-2024-hoyne-docker"
+          heroku_email: "janna.r.hoyne@gmail.com"
+          usedocker: true
