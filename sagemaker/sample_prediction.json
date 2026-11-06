@@ -1,0 +1,38 @@
+{
+  "endpoint": "house-vote-share-endpoint",
+  "image": "576489586222.dkr.ecr.us-east-2.amazonaws.com/house-vote-share:latest",
+  "input": {
+    "state": "CA",
+    "candidates": [
+      {
+        "name": "Candidate A",
+        "party": "DEM",
+        "status": "INCUMBENT",
+        "raised": 2000000
+      },
+      {
+        "name": "Candidate B",
+        "party": "REP",
+        "status": "CHALLENGER",
+        "raised": 500000
+      }
+    ]
+  },
+  "output": {
+    "predicted_margin": 28.2,
+    "predictions": [
+      {
+        "name": "Candidate A",
+        "party": "DEM",
+        "predicted_vote_share": 64.1
+      },
+      {
+        "name": "Candidate B",
+        "party": "REP",
+        "predicted_vote_share": 35.9
+      }
+    ],
+    "rating": "SAFE DEM",
+    "state": "CA"
+  }
+}
