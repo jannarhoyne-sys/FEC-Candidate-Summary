@@ -1,0 +1,11 @@
+   venv/
+   __pycache__/
+   *.pyc
+   .git/
+   .github/
+   .ipynb_checkpoints/
+   Notebooks/
+   Screenshots/
+   Figures/
+   Data/*
+   !Data/model_data_2024.csv
