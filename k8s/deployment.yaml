@@ -1,0 +1,48 @@
+# Kubernetes Deployment: runs the House vote share app from Docker Hub.
+# A Deployment keeps the requested number of Pods (copies of the app) running,
+# and replaces any Pod that crashes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: house-vote-share
+  labels:
+    app: house-vote-share
+spec:
+  replicas: 2                      # two Pods, so the app stays up if one fails
+  selector:
+    matchLabels:
+      app: house-vote-share        # manage the Pods that carry this label
+  template:
+    metadata:
+      labels:
+        app: house-vote-share
+    spec:
+      containers:
+        - name: house-vote-share
+          image: jannahoyne1/house-vote-share:latest   # same image as Docker Hub, Heroku and EC2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080  # gunicorn listens here inside the container
+          env:
+            - name: PORT
+              value: "8080"
+          # Only send traffic to a Pod once the app answers its health check
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # Restart the container if the health check keeps failing
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "250m"          # a quarter of a CPU core
+              memory: "300Mi"
+            limits:
+              memory: "1Gi"

@@ -1,10 +1,3 @@
-"""
-Delete the SageMaker endpoint, its endpoint configs and models so nothing keeps costing money.
-The image in ECR is kept (storage costs a few cents a month).
-
-Run from the FInal_2 folder:
-    python sagemaker/cleanup.py
-"""
 import boto3
 
 REGION = "us-east-2"

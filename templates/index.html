@@ -66,6 +66,13 @@
   .cand details .row{margin-top:6px}
   .errors{margin-top:12px;padding:10px 12px;background:#fdecea;border:1px solid #f1b0a8;border-radius:4px;color:#a3271b}
   @media (max-width:700px){ .cand-grid{grid-template-columns:1fr} .whatif{margin-left:0} }
+  .help{display:block;font-size:12px;line-height:1.3;color:#8b8589;margin-top:3px}
+  .cand input::placeholder{color:#b5adb1}
+  .f-sel{width:150px} .f-money{width:130px} .f-pct{width:120px}
+  .f-sel select{width:100%}
+  .howto{margin-top:12px;font-size:14px;color:var(--muted)}
+  .foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--muted)}
+  .foot a{color:var(--dem)}
   .caution{margin-top:10px;padding:8px 12px;background:#fff7d6;border:1px solid #e6cf7a;border-radius:4px;font-size:15px}
   table{width:100%;border-collapse:collapse;margin-top:22px;font-size:15px}
   th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:2px solid var(--ink);padding:6px 8px}
@@ -119,7 +126,7 @@
           {% for s in states %}<option {% if s == state %}selected{% endif %}>{{ s }}</option>{% endfor %}
         </select>
       </div>
-      <div class="hint">Enter 2 to 4 candidates. Amounts can be typed as 250000, 250K or 1.5M. Leave a row empty to skip it.</div>
+      <div class="hint">Enter 2 to 4 candidates running in the same district. Amounts can be typed as 250000, 250K or 1.5M. Leave a row empty to skip it. The model compares each candidate's money with their opponents', so enter everyone in the race.</div>
     </div>
 
     <div class="cand-grid">
@@ -127,20 +134,28 @@
       <fieldset class="cand">
         <legend>Candidate {{ i + 1 }}</legend>
         <div class="row">
-          <div class="grow"><label>Name</label><input name="c{{ i }}_name" value="{{ row.name }}" placeholder="Name"></div>
-          <div><label>Party</label>
-            <select name="c{{ i }}_party">{% for p in parties %}<option {% if p == row.party %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
-          <div><label>Status</label>
-            <select name="c{{ i }}_status">{% for s in statuses %}<option {% if s == row.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
-          <div><label>Raised ($)</label><input name="c{{ i }}_raised" value="{{ row.raised }}" placeholder="e.g. 1.5M" class="money"></div>
+          <div class="grow"><label>Name</label><input name="c{{ i }}_name" value="{{ row.name }}" placeholder="Name">
+            <small class="help">Optional label for the results</small></div>
+          <div class="f-sel"><label>Party</label>
+            <select name="c{{ i }}_party">{% for p in parties %}<option {% if p == row.party %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+            <small class="help">OTHER = third party or independent</small></div>
+          <div class="f-sel"><label>Status</label>
+            <select name="c{{ i }}_status">{% for s in statuses %}<option {% if s == row.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+            <small class="help">Incumbent = holds the seat now; Open = no incumbent running</small></div>
+          <div class="f-money"><label>Raised ($)</label><input name="c{{ i }}_raised" value="{{ row.raised }}" placeholder="e.g. 1.5M" class="money">
+            <small class="help">Total raised for the 2023–24 cycle</small></div>
         </div>
         <details>
           <summary>Advanced (optional; blank = typical for this party and status)</summary>
           <div class="row">
-            <div><label>Small donors %</label><input name="c{{ i }}_small" value="{{ row.small or '' }}" class="pct"></div>
-            <div><label>PACs %</label><input name="c{{ i }}_pac" value="{{ row.pac or '' }}" class="pct"></div>
-            <div><label>Self-funded %</label><input name="c{{ i }}_self" value="{{ row.self or '' }}" class="pct"></div>
-            <div><label>Cash at start ($)</label><input name="c{{ i }}_cash" value="{{ row.cash or '' }}" class="money"></div>
+            <div class="f-pct"><label>Small donors %</label><input name="c{{ i }}_small" value="{{ row.small or '' }}" placeholder="0–100" class="pct">
+              <small class="help">Share of money from gifts under $200</small></div>
+            <div class="f-pct"><label>PACs %</label><input name="c{{ i }}_pac" value="{{ row.pac or '' }}" placeholder="0–100" class="pct">
+              <small class="help">Share from political action committees</small></div>
+            <div class="f-pct"><label>Self-funded %</label><input name="c{{ i }}_self" value="{{ row.self or '' }}" placeholder="0–100" class="pct">
+              <small class="help">Share from the candidate's own money and loans</small></div>
+            <div class="f-money"><label>Cash at start ($)</label><input name="c{{ i }}_cash" value="{{ row.cash or '' }}" placeholder="e.g. 250K" class="money">
+              <small class="help">Money in the bank on Jan 1, 2023</small></div>
           </div>
         </details>
       </fieldset>
@@ -207,6 +222,8 @@
       </tbody>
     </table>
 
+    <div class="howto"><b>How to read the table:</b> <b>Raised</b> is the candidate's total fundraising for 2023–24. <b>Money share</b> is their share of all money raised by the candidates in this race. <b>Predicted</b> is the model's vote share{% if r.called_right is defined %}, and <b>Actual 2024</b> is the real result{% endif %}.</div>
+
     <div class="legend">
       <span><span class="lg" style="background:var(--dem)"></span>Clear predicted winner</span>
       <span><span class="lg" style="background:repeating-linear-gradient(135deg,var(--dem) 0 3px,var(--dem-light) 3px 7px)"></span>Too close to call (predicted margin under 5 points)</span>
@@ -215,6 +232,13 @@
   {% endif %}
 
   <div class="note">Model: random forest trained on 2024 U.S. House races; average error 3.8 points on races it had never seen. Predictions are scaled so each race adds up to 100%. Money and votes are correlated, but that is not proof that money causes votes: donors also give to candidates who already look likely to win.</div>
+
+  <footer class="foot">
+    For educational purposes only. ·
+    <a href="https://github.com/jannarhoyne-sys/FEC-Candidate-Summary">View on GitHub</a>
+    <br>
+    J. Hoyne · ANA680
+  </footer>
 </div>
 </body>
 </html>
