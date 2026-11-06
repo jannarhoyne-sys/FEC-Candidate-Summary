@@ -1,0 +1,40 @@
+name: Test and deploy to Heroku
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Test the app
+        run: |
+          python -c "
+          from app import app
+          c = app.test_client()
+          assert c.get('/ping').status_code == 200
+          assert c.get('/').status_code == 200
+          assert c.get('/hypothetical').status_code == 200
+          print('All checks passed')
+          "
+
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY_ELECTION}}
+          heroku_app_name: "election-2024-hoyne"
+          heroku_email: "janna.r.hoyne@gmail.com"
